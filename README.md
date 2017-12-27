@@ -103,3 +103,25 @@ Ajax 使用返回的错误信息如下:
 </script>
 
 ```
+#### 官方文档->综合话题->文件存储
+###### 保存文件->文件上传 Base64编码接受并存储图片
+```
+官方给出了使用文件流的方式上传保存文件,若是图片，还可以通过base64编码保存成文件
+
+ $data=$request->all();
+ $imgdata=$imgdata['imgurl'];
+ $base64_str = substr($imgdata, strpos($imgdata, ",")+1);
+ $image=base64_decode($base64_str);
+ $imgname=rand(1000,10000).time().'.png';
+ Storage::disk('public')->put($imgname,$image);
+ echo $imgname;//获取到图片名称后存储到数据库中，供以后使用。
+ 其他情况参照官方文档
+ 
+ 若出现跨域情况，则代码如下:
+ <?php
+ 
+ namespace App\Http\Controllers;
+ header('Access-Control-Allow-Origin:*');
+ ......
+ 
+```
