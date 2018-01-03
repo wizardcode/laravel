@@ -210,3 +210,26 @@ public function auth()
   attempt第一个参数为验证数组，第二参数为布尔值，为true时记录remember_token。
   执行注销后，数据库remember_token更换。
 ```
+#### 官方文档->综合话题->邮件发送
+###### 细节问题整理
+```
+class SendEmail extends Mailable
+{
+    use Queueable, SerializesModels;
+    public $order;
+    public function __construct($code)
+    {
+        $this->order=$code;
+    }
+    public function build()
+    {
+        return $this->view('emails.email')->subject('欢迎您使用Myuniuni');
+    }
+}
+通过构造函数赋值order，我用在随机验证码中。
+在view后面通过使用subject 给邮件设置标题。
+若邮件发送使用SSL，
+若MAIL_HOST=smtp.mxhichina.com，则 MAIL_ENCRYPTION=ssl
+若MAIL_HOST=https://smtp.mxhichina.com,则MAIL_ENCRYPTION=
+```
+
