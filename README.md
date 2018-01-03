@@ -153,3 +153,60 @@ $result = compact(‘userlist’, ‘paginator’);
 return view(‘test’, [‘result’ => $result]);
 }
 ```
+#### 官方文档->安全相关->用户认证
+###### 细节问题整理
+```
+当登录成功以后，再次访问登录或注册url，会被重定向到首页，原因是使用了中间件，如下：
+app/Http/Middleware/RedirectIfAuthenticated.php中的handle方法
+
+public function handle($request, Closure $next)
+    {
+        if ($this->auth->check()) {
+            return redirect('/logged');
+        }
+        return $next($request);
+    }
+修改redirect的参数，可重定向到指定页面。
+
+路由文件 web.php中 Auth:routes() 为路由键组，对应/vendor/laravel/framework/src/Illuminate/Routing/Router.php
+public function auth()
+    {
+        // Authentication Routes...
+        $this->get('login', 'Auth\LoginController@showLoginForm')->name('login');
+        $this->post('login', 'Auth\LoginController@login');
+        $this->post('logout', 'Auth\LoginController@logout')->name('logout');
+
+        // Registration Routes...
+        $this->get('register', 'Auth\RegisterController@showRegistrationForm')->name('register');
+        $this->post('register', 'Auth\RegisterController@register');
+
+        // Password Reset Routes...
+        $this->get('password/reset', 'Auth\ForgotPasswordController@showLinkRequestForm')->name('password.request');
+        $this->post('password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail')->name('password.email');
+        $this->get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.reset');
+        $this->post('password/reset', 'Auth\ResetPasswordController@reset');
+    }
+通过请求方式get和post判断执行哪条路由。
+
+在LoginController.php 控制器中重写login方法可以实现多个字段登录功能
+   public function login(Request $request)
+    {
+        $username = trim($request->username);
+        $password = trim($request->password);
+        $remember = isset($request->remember) ? true : false;
+        $patternemail = "/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/";
+        $patternmobil = "/[1-9]{1}\d{10}/";
+        if (preg_match($patternemail, $username)) {
+            if ($this->guard()->attempt(['email' => $username, 'password' => $password], $remember)) {
+                return $this->sendLoginResponse($request);
+            }
+        } elseif (preg_match($patternmobil, $username)) {
+            if ($this->guard()->attempt(['mobile' => $username, 'password' => $password], $remember)) {
+                return $this->sendLoginResponse($request);
+            }
+        }
+        return $this->sendFailedLoginResponse($request);
+    }
+  attempt第一个参数为验证数组，第二参数为布尔值，为true时记录remember_token。
+  执行注销后，数据库remember_token更换。
+```
