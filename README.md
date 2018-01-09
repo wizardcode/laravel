@@ -209,6 +209,79 @@ public function auth()
     }
   attempt第一个参数为验证数组，第二参数为布尔值，为true时记录remember_token。
   执行注销后，数据库remember_token更换。
+  
+```
+###### Cookie使用 && 记住我
+```
+当访问laravel网站后，系统默认在本地写入两条Cooike，名字分别为XSRF-TOKEN和laravel_session，Value通过加密存储，若value值一经修改，laravel则废弃失效
+当用户在登陆时选择记住我时，成功登陆以后会下入另一条Cookie，名为remember_web_59b*，其有效期为五年，这显然是不安全的，你会发现把cookie添加到另外一台电脑或浏览器，刷新一下就可以成功登陆，而且是一劳永逸，而真正用户不知情。使用cookie登陆本身就有安全问题，暂不考虑这些因素，在现有的cookie上进一步加强安全。
+第一步：修改remember_web_59b*的有效期。
+在LoginController中，使用了trait，有“use AuthenticatesUsers;”，在其中有方法sendLoginResponse，在LoginController重写次方法，在发送到客户端之前重写过期日期。
+protected function sendLoginResponse(Request $request)
+    {
+        $rememberTokenExpireMinutes = 43200;//一个月
+        $rememberTokenName = Auth::getRecallerName();
+        Cookie::queue($rememberTokenName, Cookie::get($rememberTokenName), $rememberTokenExpireMinutes);
+
+        $request->session()->regenerate();
+
+        $this->clearLoginAttempts($request);
+
+        return $this->authenticated($request, $this->guard()->user())
+            ?: redirect()->intended($this->redirectPath());
+    }
+    
+第二步：登陆成功后增加一个cookie，作为登录序列，在数据库user表中增加listorder字段
+
+protected function loginList()
+ {
+        $listcode = time();
+        $op = User::find(Auth::id());
+        $op->listorder = $listcode;
+        if ($op->save() > 0) {
+            $loginlist = Cookie::queue('loginlist', $listcode, 1000000);//在客户端写入cookie
+            }
+}
+在LoginController重写redirectTo
+protected function redirectTo()
+ {
+        $this->loginList();
+        return '/home';
+ }
+使用密码成功登陆后可在客户端和数据库插入对应的值，通过cookie登录,不经过LoginController
+第三步：在HomeController中，构造函数加入了auth中间件，故只有认证通过的用户可访问。路由home对应HomeController的index方法
+public function index(Request $request)
+    {
+        $loginlist = $request->cookie('loginlist');
+        $datebaselist = Auth::user()->listorder;
+        if ($loginlist == $datebaselist) {
+            if (Auth::viaRemember()) {
+                $this->loginList();
+                $request->session()->regenerate();
+            } else {
+                $this->loginList();
+            }
+        } else {
+            $this->loginList();
+            Auth::logout();
+            return redirect('/login');
+        }
+        $result['info'] = "success";
+        $result['data'] = [];
+        return json_encode($result);
+    }
+
+    protected function loginList()
+    {
+        $listcode = time();
+        $op = User::find(Auth::id());
+        $op->listorder = $listcode;
+        if ($op->save() > 0) {
+            Cookie::queue('loginlist', $listcode, 1000000);
+        }
+    }
+ 每次认证都是重写listorder，若cookie被盗用，用户再次登录时会要求使用密码登录，同时刷新listorder和remember_web_59b*,盗取者信息失效。
+    
 ```
 #### 官方文档->综合话题->邮件发送
 ###### 细节问题整理
@@ -232,4 +305,18 @@ class SendEmail extends Mailable
 若MAIL_HOST=smtp.mxhichina.com，则 MAIL_ENCRYPTION=ssl
 若MAIL_HOST=https://smtp.mxhichina.com,则MAIL_ENCRYPTION=
 ```
-
+#### 官方文档->综合话题->文件存储
+###### 细节问题整理
+```
+if (isset($data['avatar'])) {
+    $file=$request->file('avatar');
+    $path = $file->storeAs('avatar', $data['id'].$file->getClientOriginalExtension());
+    $member->avatar = $avatar.$path;
+ }
+ $file->getClientOriginalExtension() 获取文件扩展名
+ $file->getClientOriginalName() 获取文件原始名称
+ $file->getClientMimeType() 获取文件类型
+ $file->getClientSize() 获取文件大小
+ 更多函数在 vendor/symfony/http-foundation/File/UploadedFile.php
+ 
+```
