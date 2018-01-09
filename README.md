@@ -214,7 +214,9 @@ public function auth()
 ###### Cookie使用 && 记住我
 ```
 当访问laravel网站后，系统默认在本地写入两条Cooike，名字分别为XSRF-TOKEN和laravel_session，Value通过加密存储，若value值一经修改，laravel则废弃失效
-当用户在登陆时选择记住我时，成功登陆以后会下入另一条Cookie，名为remember_web_59b*，其有效期为五年，这显然是不安全的，你会发现把cookie添加到另外一台电脑或浏览器，刷新一下就可以成功登陆，而且是一劳永逸，而真正用户不知情。使用cookie登陆本身就有安全问题，暂不考虑这些因素，在现有的cookie上进一步加强安全。
+当用户在登陆时选择记住我时，成功登陆以后会下入另一条Cookie，名为remember_web_59b*，其有效期为五年，这显然是不安全的，你会发现把cookie添加到另外一台
+电脑或浏览器，刷新一下就可以成功登陆，而且是一劳永逸，而真正用户不知情。使用cookie登陆本身就有安全问题，暂不考虑这些因素，在现有的cookie上进一步加强
+安全。
 第一步：修改remember_web_59b*的有效期。
 在LoginController中，使用了trait，有“use AuthenticatesUsers;”，在其中有方法sendLoginResponse，在LoginController重写次方法，在发送到客户端之前重写过期日期。
 protected function sendLoginResponse(Request $request)
