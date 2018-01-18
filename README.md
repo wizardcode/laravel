@@ -322,3 +322,37 @@ if (isset($data['avatar'])) {
  更多函数在 vendor/symfony/http-foundation/File/UploadedFile.php
  
 ```
+#### 官方文档->综合话题->消息通知
+###### 数据库通知实例
+```
+完成官方文档的先决条件后，打开创建好的通知类（通常存在 app/Notifications 文件夹里）
+格式化数据库通知，官方实例
+public function toArray($notifiable)
+{
+    return [
+        'invoice_id' => $this->invoice->id,
+        'amount' => $this->invoice->amount,
+    ];
+}
+初次之外，其他可用代码如下：
+public function via($notifiable)//设置消息频道为
+      database{
+        return ['database'];
+    }
+   
+public $invoice;
+public function __construct($invoice='')//invoice为控制器方法中出过来的数据，在构造函数中赋值给invoice
+ {
+       $this->invoice=$invoice;
+  }
+  
+在控制器中定义方法：
+ public function test()
+   {   
+        $invoice['id']=100;
+        $invoice['amount']=200;
+        $user = User::find(1);//指定用户，也可为当前登录用户。
+        $user->notify(new InvoicePaid($invoice));
+    }
+ 至此数据库消息通知完毕。
+```
