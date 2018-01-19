@@ -321,6 +321,15 @@ if (isset($data['avatar'])) {
  $file->getClientSize() 获取文件大小
  更多函数在 vendor/symfony/http-foundation/File/UploadedFile.php
  
+  自定义磁盘路径
+  'college' => [
+             'driver' => 'local', //使用local驱动
+             'root' => '../public/img/colleges', //此选项为文件存储路径,推荐使用相对路径,可以把目标文件存储到任意位置.
+             'url' => env('APP_URL').'/storage',//
+             'visibility' => 'public',
+         ],
+  root默认使用的storage_path设置路径,文件目录在/storage下,若在storage之外储存文件,推荐使用相对路径,如上.
+  url设置的路径为root的符号链接,即root对应url的地址.通过访问url地址可以定向到root下.
 ```
 #### 官方文档->综合话题->消息通知
 ###### 数据库通知实例
