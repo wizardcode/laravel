@@ -365,3 +365,10 @@ public function __construct($invoice='')//invoice为控制器方法中出过来�
     }
  至此数据库消息通知完毕。
 ```
+#### 官方文档->数据库->数据填充
+###### 数据填充时笔记
+```
+使用seed数据填充时，使用前先清除数据库，并重置自增ID，在进行转移，如下：
+       DB::connection('college_user_system@mysql')->table('sat_subjects')->truncate();
+       DB::connection('college_user_system@mysql')->table('sat_subjects')->insert($datas);
+```
