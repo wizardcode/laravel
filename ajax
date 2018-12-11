@@ -1,0 +1,32 @@
+1.先看laravel对Ajax的判断
+
+public function ajax()
+{
+    return $this->isXmlHttpRequest();
+}
+public function isXmlHttpRequest()
+{
+   return 'XMLHttpRequest' == $this->headers->get('X-Requested-With');
+}
+2.模拟Ajax请求
+
+public function test(Request $request)
+{
+    if ($request->ajax()) {
+        return "Ajax请求";
+    } else {
+        return "非Ajax请求";
+    }
+}
+public function get()
+{
+    $client = new Client([
+        'headers' => [
+            "X-Requested-With" => "XMLHttpRequest",
+        ],
+    ]);
+    $result = $client->get("http://local.myuniuni.com/test123");
+    $data = $result->getBody()->getContents();
+    echo $data;
+}
+无论什么方式，后端均判断为Ajax请求。
