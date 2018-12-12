@@ -1,4 +1,4 @@
-### 模拟Ajax请求
+## 1.模拟Ajax请求
 
 #### 先看laravel对请求是否为Ajax的判断
 
@@ -28,7 +28,7 @@ class TestController extends Controller
     {
         $this->client = new Client([
             'headers' => [
-                "X-Requested-With" => "XMLHttpRequest",
+                "X-Requested-With" => "XMLHttpRequest",//只需在请求头中加入此行便可
             ],
         ]);
     }
@@ -44,9 +44,9 @@ class TestController extends Controller
 
     public function get()
     {
-        $result = $this->client->get("http://local.myuniuni.com/test123");
-        $data = $result->getBody()->getContents();
-        echo $data;
+        $result = $this->client->get("http://local.myuniuni.com/test/ajax");
+        $res = $result->getBody()->getContents();
+        echo $res;
     }
   ```
     
