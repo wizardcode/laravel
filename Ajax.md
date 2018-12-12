@@ -48,5 +48,6 @@ class TestController extends Controller
         $data = $result->getBody()->getContents();
         echo $data;
     }
-    ```
-### 无论实际使用任何请求方式，后端均判断为Ajax请求，输出“Ajax请求”
+  ```
+    
+#### 无论实际使用任何请求方式，后端均判断为Ajax请求，输出“Ajax请求”
