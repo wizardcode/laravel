@@ -24,3 +24,5 @@
 11.[邮件发送配置](./mail/send.md)
 
 12.[数据库消息通知](./notification/database.md)
+
+13.[批量更新数据](./base/updateBatch.md)
